@@ -11,6 +11,18 @@
     Dylovene: 3
 
 - type: reaction
+  id: Ethylredoxrazine
+  reactants:
+    Oxygen:
+      amount: 1
+    Dylovene:
+      amount: 1
+    Carbon:
+      amount: 1
+  products:
+    Ethylredoxrazine: 3
+
+- type: reaction
   id: Cryptobiolin
   reactants:
     Potassium:
@@ -141,6 +153,16 @@
       amount: 1
   products:
     Inaprovaline: 3
+
+- type: reaction
+  id: Ipecac
+  reactants:
+    Dylovene:
+      amount: 1
+    Ammonia:
+      amount: 1
+  products:
+    Ipecac: 2
 
 - type: reaction
   id: TranexamicAcid
