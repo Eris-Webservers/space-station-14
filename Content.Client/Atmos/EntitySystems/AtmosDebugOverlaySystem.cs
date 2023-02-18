@@ -43,14 +43,14 @@ namespace Content.Client.Atmos.EntitySystems
 
             var overlayManager = IoCManager.Resolve<IOverlayManager>();
             if(!overlayManager.HasOverlay<AtmosDebugOverlay>())
-                overlayManager.AddOverlay(new AtmosDebugOverlay());
+                overlayManager.AddOverlay(new AtmosDebugOverlay(this));
         }
 
         private void OnGridRemoved(GridRemovalEvent ev)
         {
-            if (_tileData.ContainsKey(ev.GridId))
+            if (_tileData.ContainsKey(ev.EntityUid))
             {
-                _tileData.Remove(ev.GridId);
+                _tileData.Remove(ev.EntityUid);
             }
         }
 

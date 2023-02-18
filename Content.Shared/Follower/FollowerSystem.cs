@@ -1,19 +1,22 @@
-﻿using Content.Shared.Database;
+using Content.Shared.Database;
 using Content.Shared.Follower.Components;
 using Content.Shared.Ghost;
 using Content.Shared.Movement.Events;
 using Content.Shared.Verbs;
+using Robust.Shared.Map;
 
 namespace Content.Shared.Follower;
 
 public sealed class FollowerSystem : EntitySystem
 {
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
+
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<GetVerbsEvent<AlternativeVerb>>(OnGetAlternativeVerbs);
-        SubscribeLocalEvent<FollowerComponent, RelayMoveInputEvent>(OnFollowerMove);
+        SubscribeLocalEvent<FollowerComponent, MoveInputEvent>(OnFollowerMove);
         SubscribeLocalEvent<FollowedComponent, EntityTerminatingEvent>(OnFollowedTerminating);
     }
 
@@ -22,7 +25,7 @@ public sealed class FollowerSystem : EntitySystem
         if (!HasComp<SharedGhostComponent>(ev.User))
             return;
 
-        if (ev.User == ev.Target)
+        if (ev.User == ev.Target || ev.Target.IsClientSide())
             return;
 
         var verb = new AlternativeVerb
@@ -40,7 +43,7 @@ public sealed class FollowerSystem : EntitySystem
         ev.Verbs.Add(verb);
     }
 
-    private void OnFollowerMove(EntityUid uid, FollowerComponent component, RelayMoveInputEvent args)
+    private void OnFollowerMove(EntityUid uid, FollowerComponent component, ref MoveInputEvent args)
     {
         StopFollowingEntity(uid, component.Following);
     }
@@ -70,7 +73,7 @@ public sealed class FollowerSystem : EntitySystem
         followedComp.Following.Add(follower);
 
         var xform = Transform(follower);
-        xform.AttachParent(entity);
+        _transform.SetParent(xform, entity);
         xform.LocalPosition = Vector2.Zero;
         xform.LocalRotation = Angle.Zero;
 
@@ -100,7 +103,13 @@ public sealed class FollowerSystem : EntitySystem
             RemComp<FollowedComponent>(target);
         RemComp<FollowerComponent>(uid);
 
-        Transform(uid).AttachToGridOrMap();
+        var xform = Transform(uid);
+        xform.AttachToGridOrMap();
+        if (xform.MapID == MapId.Nullspace)
+        {
+            Del(uid);
+            return;
+        }
 
         RemComp<OrbitVisualsComponent>(uid);
 

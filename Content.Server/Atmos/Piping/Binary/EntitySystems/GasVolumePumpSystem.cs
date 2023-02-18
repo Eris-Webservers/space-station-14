@@ -21,10 +21,12 @@ namespace Content.Server.Atmos.Piping.Binary.EntitySystems
     public sealed class GasVolumePumpSystem : EntitySystem
     {
         [Dependency] private readonly IGameTiming _gameTiming = default!;
+        [Dependency] private readonly IAdminLogManager _adminLogger = default!;
+        [Dependency] private readonly TransformSystem _transformSystem = default!;
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
         [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
-        [Dependency] private readonly IAdminLogManager _adminLogger = default!;
         [Dependency] private readonly SharedAmbientSoundSystem _ambientSoundSystem = default!;
+        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
 
         public override void Initialize()
         {
@@ -65,7 +67,7 @@ namespace Content.Server.Atmos.Piping.Binary.EntitySystems
                 || !nodeContainer.TryGetNode(pump.InletName, out PipeNode? inlet)
                 || !nodeContainer.TryGetNode(pump.OutletName, out PipeNode? outlet))
             {
-                _ambientSoundSystem.SetAmbience(pump.Owner, false);
+                _ambientSoundSystem.SetAmbience(uid, false);
                 return;
             }
 
@@ -81,14 +83,14 @@ namespace Content.Server.Atmos.Piping.Binary.EntitySystems
                 return;
 
             // We multiply the transfer rate in L/s by the seconds passed since the last process to get the liters.
-            var transferRatio = (float)(pump.TransferRate * (_gameTiming.CurTime - device.LastProcess).TotalSeconds) / inlet.Air.Volume;
-
-            var removed = inlet.Air.RemoveRatio(transferRatio);
+            var removed = inlet.Air.RemoveVolume((float)(pump.TransferRate * (_gameTiming.CurTime - device.LastProcess).TotalSeconds));
 
             // Some of the gas from the mixture leaks when overclocked.
             if (pump.Overclocked)
             {
-                var tile = _atmosphereSystem.GetTileMixture(EntityManager.GetComponent<TransformComponent>(pump.Owner).Coordinates, true);
+                var transform = Transform(uid);
+                var indices = _transformSystem.GetGridOrMapTilePosition(uid, transform);
+                var tile = _atmosphereSystem.GetTileMixture(transform.GridUid, null, indices, true);
 
                 if (tile != null)
                 {
@@ -98,7 +100,7 @@ namespace Content.Server.Atmos.Piping.Binary.EntitySystems
             }
 
             _atmosphereSystem.Merge(outlet.Air, removed);
-            _ambientSoundSystem.SetAmbience(pump.Owner, removed.TotalMoles > 0f);
+            _ambientSoundSystem.SetAmbience(uid, removed.TotalMoles > 0f);
         }
 
         private void OnVolumePumpLeaveAtmosphere(EntityUid uid, GasVolumePumpComponent pump, AtmosDeviceDisabledEvent args)
@@ -159,7 +161,7 @@ namespace Content.Server.Atmos.Piping.Binary.EntitySystems
             if (!Resolve(uid, ref pump, ref appearance, false))
                 return;
 
-            appearance.SetData(PumpVisuals.Enabled, pump.Enabled);
+            _appearance.SetData(uid, PumpVisuals.Enabled, pump.Enabled, appearance);
         }
     }
 }

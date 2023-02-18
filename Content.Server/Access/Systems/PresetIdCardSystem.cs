@@ -12,7 +12,7 @@ namespace Content.Server.Access.Systems
     {
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
         [Dependency] private readonly IdCardSystem _cardSystem = default!;
-        [Dependency] private readonly AccessSystem _accessSystem = default!;
+        [Dependency] private readonly SharedAccessSystem _accessSystem = default!;
         [Dependency] private readonly StationSystem _stationSystem = default!;
 
         public override void Initialize()
@@ -67,7 +67,7 @@ namespace Content.Server.Access.Systems
             _accessSystem.SetAccessToJob(uid, job, extended);
 
             // and also change job title on a card id
-            _cardSystem.TryChangeJobTitle(uid, job.Name);
+            _cardSystem.TryChangeJobTitle(uid, job.LocalizedName);
         }
     }
 }

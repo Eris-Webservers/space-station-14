@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace Content.Server.Chemistry.ReagentEffects
 {
     /// <summary>
-    /// Default metabolism for medicine reagents.
+    /// Causes a random disease from a list, if the user is not already diseased.
     /// </summary>
     [UsedImplicitly]
     public sealed class ChemCauseRandomDisease : ReagentEffect
@@ -22,6 +22,9 @@ namespace Content.Server.Chemistry.ReagentEffects
         public override void Effect(ReagentEffectArgs args)
         {
             if (args.EntityManager.TryGetComponent<DiseasedComponent>(args.SolutionEntity, out var diseased))
+                return;
+
+            if (args.Scale != 1f)
                 return;
 
             var random = IoCManager.Resolve<IRobustRandom>();

@@ -11,6 +11,7 @@ public sealed partial class CargoSystem : SharedCargoSystem
 {
     [Dependency] private readonly IPrototypeManager _protoMan = default!;
     [Dependency] private readonly ItemSlotsSystem _slots = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     private ISawmill _sawmill = default!;
 
@@ -27,7 +28,8 @@ public sealed partial class CargoSystem : SharedCargoSystem
     public override void Shutdown()
     {
         base.Shutdown();
-        Cleanup();
+        ShutdownShuttle();
+        CleanupShuttle();
     }
 
     private void OnStationInit(StationInitializedEvent ev)
@@ -41,5 +43,11 @@ public sealed partial class CargoSystem : SharedCargoSystem
         base.Update(frameTime);
         UpdateConsole(frameTime);
         UpdateTelepad(frameTime);
+    }
+
+    // please don't delete this thank you
+    public void UpdateBankAccount(StationBankAccountComponent component, int balanceAdded)
+    {
+        component.Balance += balanceAdded;
     }
 }

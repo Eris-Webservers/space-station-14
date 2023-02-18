@@ -8,6 +8,7 @@
     tags:
       - MagazineCaselessRifle
   - type: BallisticAmmoProvider
+    mayTransfer: true
     whitelist:
       tags:
         - CartridgeCaselessRifle
@@ -111,8 +112,6 @@
     steps: 6
     zeroVisible: false
   - type: Appearance
-
-# No flash
 
 - type: entity
   id: MagazinePistolCaselessRifleHighVelocity
@@ -241,21 +240,6 @@
   - type: Sprite
     layers:
     - state: red
-      map: ["enum.GunVisualLayers.Base"]
-    - state: mag-1
-      map: ["enum.GunVisualLayers.Mag"]
-
-- type: entity
-  id: MagazineCaselessRifleShortFlash
-  name: "short magazine (.25 caseless flash)"
-  parent: BaseMagazineCaselessRifleShort
-  components:
-  - type: BallisticAmmoProvider
-    proto: CartridgeCaselessRifleFlash
-    capacity: 20
-  - type: Sprite
-    layers:
-    - state: flash
       map: ["enum.GunVisualLayers.Base"]
     - state: mag-1
       map: ["enum.GunVisualLayers.Mag"]

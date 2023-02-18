@@ -10,14 +10,16 @@ public sealed class IntrinsicUIComponent : Component, ISerializationHooks
     /// <summary>
     /// List of UIs and their actions that this entity has.
     /// </summary>
-    [ViewVariables, DataField("uis", required: true)]
+    [DataField("uis", required: true)]
     public List<IntrinsicUIEntry> UIs = new();
 
     void ISerializationHooks.AfterDeserialization()
     {
-        foreach (var ui in UIs)
+        for (var i = 0; i < UIs.Count; i++)
         {
+            var ui = UIs[i];
             ui.AfterDeserialization();
+            UIs[i] = ui;
         }
     }
 }

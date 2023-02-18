@@ -8,8 +8,10 @@ using Content.Shared.Administration;
 using Content.Shared.Administration.Logs;
 using Content.Shared.CCVar;
 using Content.Shared.Eui;
+using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 using static Content.Shared.Administration.Logs.AdminLogsEuiMsg;
 
 namespace Content.Server.Administration.Logs;
@@ -28,6 +30,9 @@ public sealed class AdminLogsEui : BaseEui
     private readonly Dictionary<Guid, string> _players = new();
     private CancellationTokenSource _logSendCancellation = new();
     private LogFilter _filter;
+
+    private DefaultObjectPool<List<SharedAdminLog>> _adminLogListPool =
+        new(new ListPolicy<SharedAdminLog>());
 
     public AdminLogsEui()
     {
@@ -108,6 +113,7 @@ public sealed class AdminLogsEui : BaseEui
                 {
                     CancellationToken = _logSendCancellation.Token,
                     Round = request.RoundId,
+                    Search = request.Search,
                     Types = request.Types,
                     Impacts = request.Impacts,
                     Before = request.Before,
@@ -139,13 +145,8 @@ public sealed class AdminLogsEui : BaseEui
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        // TODO ADMIN LOGS array pool
-        List<SharedAdminLog> logs = default!;
-
-        await Task.Run(async () =>
-        {
-            logs = await _adminLogs.All(_filter);
-        }, _filter.CancellationToken);
+        var logs = await Task.Run(async () => await _adminLogs.All(_filter, _adminLogListPool.Get),
+            _filter.CancellationToken);
 
         if (logs.Count > 0)
         {
@@ -161,11 +162,13 @@ public sealed class AdminLogsEui : BaseEui
             _filter.LastLogId = logs[largestId].Id;
         }
 
-        var message = new NewLogs(logs, replace);
+        var message = new NewLogs(logs, replace, logs.Count >= _filter.Limit);
 
         SendMessage(message);
 
         _sawmill.Info($"Sent {logs.Count} logs to {Player.Name} in {stopwatch.Elapsed.TotalMilliseconds} ms");
+
+        _adminLogListPool.Return(logs);
     }
 
     public override void Closed()

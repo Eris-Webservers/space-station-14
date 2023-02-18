@@ -33,7 +33,10 @@
       event: !type:OpenUiActionEvent
         key: enum.InstrumentUiKey.Key
   - type: Examiner
-  - type: GhostRadio
+  - type: IntrinsicRadioReceiver
+  - type: ActiveRadio
+    channels:
+    - Common
   - type: DoAfter
   - type: Actions
   - type: TypingIndicator
@@ -44,8 +47,8 @@
     #  so they can ghost and come back.
     # Note that the personal AI never "dies".
   - type: MobState
-    thresholds:
-      0: !type:NormalMobState {}
+    allowedStates:
+      - Alive
   - type: Appearance
     visuals:
       - type: GenericEnumVisualizer

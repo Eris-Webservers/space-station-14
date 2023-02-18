@@ -2,6 +2,7 @@ using Content.Server.Atmos.Components;
 using Content.Server.Shuttles.Systems;
 using Content.Shared.Maps;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Components;
 
 namespace Content.Server.Atmos.EntitySystems;
 
@@ -12,6 +13,7 @@ namespace Content.Server.Atmos.EntitySystems;
 public sealed class AutomaticAtmosSystem : EntitySystem
 {
     [Dependency] private readonly ITileDefinitionManager _tileDefinitionManager = default!;
+    [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
 
     public override void Initialize()
     {
@@ -19,7 +21,7 @@ public sealed class AutomaticAtmosSystem : EntitySystem
         SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
     }
 
-    private void OnTileChanged(TileChangedEvent ev)
+    private void OnTileChanged(ref TileChangedEvent ev)
     {
         // Only if a atmos-holding tile has been added or removed.
         // Also, these calls are surprisingly slow.
@@ -27,7 +29,7 @@ public sealed class AutomaticAtmosSystem : EntitySystem
         // TODO: a simple array lookup, as tile IDs are likely contiguous, and there's at most 2^16 possibilities anyway.
         if (!((ev.OldTile.IsSpace(_tileDefinitionManager) && !ev.NewTile.IsSpace(_tileDefinitionManager)) ||
             (!ev.OldTile.IsSpace(_tileDefinitionManager) && ev.NewTile.IsSpace(_tileDefinitionManager))) ||
-            HasComp<IAtmosphereComponent>(ev.Entity))
+            _atmosphereSystem.HasAtmosphere(ev.Entity))
             return;
 
         if (!TryComp<PhysicsComponent>(ev.Entity, out var physics))

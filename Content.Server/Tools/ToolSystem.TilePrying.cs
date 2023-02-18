@@ -4,7 +4,9 @@ using Content.Server.Tools.Components;
 using Content.Shared.Interaction;
 using Content.Shared.Maps;
 using Content.Shared.Tools.Components;
+using Robust.Shared.Audio;
 using Robust.Shared.Map;
+using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
 namespace Content.Server.Tools;
@@ -35,7 +37,8 @@ public sealed partial class ToolSystem
             return;
         }
 
-        grid.GetTileRef(args.Coordinates).PryTile(_mapManager, _tileDefinitionManager, EntityManager);
+        var tile = grid.GetTileRef(args.Coordinates);
+        _tile.PryTile(tile);
     }
 
     private void OnTilePryingAfterInteract(EntityUid uid, TilePryingComponent component, AfterInteractEvent args)

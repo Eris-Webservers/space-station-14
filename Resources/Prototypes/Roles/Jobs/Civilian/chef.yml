@@ -1,11 +1,15 @@
 - type: job
   id: Chef
-  name: "chef"
+  name: job-name-chef
+  description: job-description-chef
+  playTimeTracker: JobChef
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Civilian
+      time: 1800
   startingGear: ChefGear
-  departments:
-  - Civilian
   icon: "Chef"
-  supervisors: "the head of personnel"
+  supervisors: job-supervisors-hop
   access:
   - Service
   - Maintenance

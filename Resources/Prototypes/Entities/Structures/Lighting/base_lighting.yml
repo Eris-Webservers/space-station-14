@@ -90,15 +90,19 @@
     receiveFrequencyId: SmartLight
   - type: ApcNetworkConnection
   - type: Appearance
-    visuals:
-    - type: PoweredLightVisualizer
-      blinkingSound:
-        path: "/Audio/Machines/light_tube_on.ogg"
+  - type: PoweredLightVisuals
+    blinkingSound:
+      path: "/Audio/Machines/light_tube_on.ogg"
+  - type: SignalReceiver
+    inputs:
+      On: []
+      Off: []
+      Toggle: []
 
 - type: entity
   id: Poweredlight
   description: "A light fixture. Draws power and produces light when equipped with a light tube."
-  suffix:
+  suffix: ""
   parent: PoweredlightEmpty
   components:
   - type: Sprite
@@ -243,6 +247,9 @@
   - type: PointLight
     enabled: false
     offset: "0, -0.5"
+  - type: ContainerContainer
+    containers:
+      light_bulb: !type:ContainerSlot
   - type: PoweredLight
     bulb: Bulb
     damage:
@@ -255,12 +262,16 @@
     receiveFrequencyId: SmartLight
   - type: ApcNetworkConnection
   - type: Appearance
-    visuals:
-    - type: PoweredLightVisualizer
+  - type: PoweredLightVisuals
+  - type: SignalReceiver
+    inputs:
+      On: []
+      Off: []
+      Toggle: []
 
 - type: entity
   id: PoweredSmallLight
-  suffix:
+  suffix: ""
   parent: PoweredSmallLightEmpty
   components:
   - type: Sprite
@@ -275,14 +286,15 @@
 - type: entity
   id: EmergencyLight
   name: emergency light
-  description: A small red light with an internal battery that turns on as soon as it stops receiving any power.
+  description: A small light with an internal battery that turns on as soon as it stops receiving any power. Nanotrasen technology allows it to adapt its color to alert crew to the conditions of the station.
   parent: AlwaysPoweredWallLight
-  suffix:
+  suffix: ""
   components:
   - type: PointLight
     enabled: false
     radius: 10
     energy: 2.5
+    offset: "0, 0.2"
     color: "#FF4020"
     mask: /Textures/Effects/LightMasks/cone.png
   - type: ApcPowerReceiver
@@ -294,10 +306,23 @@
   - type: Sprite
     sprite: Structures/Wallmounts/Lighting/emergency_light.rsi
     layers:
+    - state: base
+      map: [ "enum.EmergencyLightVisualLayers.Base" ]
     - state: emergency_light_off
+      map: [ "enum.EmergencyLightVisualLayers.LightOff" ]
+      color: "#FF4020"
+    - state: emergency_light_on
+      map: [ "enum.EmergencyLightVisualLayers.LightOn" ]
+      color: "#FF4020"
+      shader: "unshaded"
+      visible: false
   - type: Appearance
-    visuals:
-    - type: EmergencyLightVisualizer
+  - type: AmbientSound
+    sound:
+      path: /Audio/Ambience/Objects/alarm.ogg
+    volume: -12
+    range: 5
+    enabled: false
   placement:
     mode: SnapgridCenter
     snap:

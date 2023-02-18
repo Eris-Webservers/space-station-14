@@ -1,7 +1,9 @@
 using System.Linq;
-using Content.Server.Buckle.Components;
+using Content.Server.Buckle.Systems;
 using Content.Server.Storage.Components;
+using Content.Shared.Buckle.Components;
 using Content.Shared.Foldable;
+using Content.Shared.Storage.Components;
 using Content.Shared.Verbs;
 using JetBrains.Annotations;
 using Robust.Shared.Containers;
@@ -11,7 +13,8 @@ namespace Content.Server.Foldable
     [UsedImplicitly]
     public sealed class FoldableSystem : SharedFoldableSystem
     {
-        [Dependency] private SharedContainerSystem _container = default!;
+        [Dependency] private readonly BuckleSystem _buckle = default!;
+        [Dependency] private readonly SharedContainerSystem _container = default!;
 
         public override void Initialize()
         {
@@ -19,13 +22,14 @@ namespace Content.Server.Foldable
 
             SubscribeLocalEvent<FoldableComponent, StorageOpenAttemptEvent>(OnFoldableOpenAttempt);
             SubscribeLocalEvent<FoldableComponent, GetVerbsEvent<AlternativeVerb>>(AddFoldVerb);
-            SubscribeLocalEvent<FoldableComponent, InsertIntoEntityStorageAttemptEvent>(OnEntityStorageInsertAttempt);
+            SubscribeLocalEvent<FoldableComponent, StoreMobInItemContainerAttemptEvent>(OnStoreThisAttempt);
+
         }
 
-        private void OnFoldableOpenAttempt(EntityUid uid, FoldableComponent component, StorageOpenAttemptEvent args)
+        private void OnFoldableOpenAttempt(EntityUid uid, FoldableComponent component, ref StorageOpenAttemptEvent args)
         {
             if (component.IsFolded)
-                args.Cancel();
+                args.Cancelled = true;
         }
 
         public bool TryToggleFold(FoldableComponent comp)
@@ -83,21 +87,22 @@ namespace Content.Server.Foldable
             base.SetFolded(component, folded);
 
             // You can't buckle an entity to a folded object
-            if (TryComp(component.Owner, out StrapComponent? strap))
-                strap.Enabled = !component.IsFolded;
+            _buckle.StrapSetEnabled(component.Owner, !component.IsFolded);
         }
 
-        public void OnEntityStorageInsertAttempt(EntityUid uid, FoldableComponent comp, InsertIntoEntityStorageAttemptEvent args)
+        public void OnStoreThisAttempt(EntityUid uid, FoldableComponent comp, ref StoreMobInItemContainerAttemptEvent args)
         {
-            if (!comp.IsFolded)
-                args.Cancel();
+            args.Handled = true;
+
+            if (comp.IsFolded)
+                args.Cancelled = true;
         }
 
         #region Verb
 
         private void AddFoldVerb(EntityUid uid, FoldableComponent component, GetVerbsEvent<AlternativeVerb> args)
         {
-            if (!args.CanAccess || !args.CanInteract || !CanToggleFold(uid, component))
+            if (!args.CanAccess || !args.CanInteract || args.Hands == null || !CanToggleFold(uid, component))
                 return;
 
             AlternativeVerb verb = new()

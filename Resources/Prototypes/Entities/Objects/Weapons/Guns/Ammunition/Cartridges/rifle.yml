@@ -18,6 +18,8 @@
       map: ["enum.AmmoVisualLayers.Base"]
   - type: Appearance
   - type: SpentAmmoVisuals
+  - type: StaticPrice
+    price: 10
 
 - type: entity
   id: CartridgeRifle
@@ -26,14 +28,6 @@
   components:
   - type: CartridgeAmmo
     proto: BulletRifle
-
-- type: entity
-  id: CartridgeRifleFlash
-  name: cartridge (.20 rifle flash)
-  parent: BaseCartridgeRifle
-  components:
-  - type: CartridgeAmmo
-    proto: BulletRifleFlash
 
 - type: entity
   id: CartridgeRifleHighVelocity

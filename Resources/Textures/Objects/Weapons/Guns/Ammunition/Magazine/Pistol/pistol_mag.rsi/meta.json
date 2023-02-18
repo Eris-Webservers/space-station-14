@@ -11,9 +11,6 @@
             "name": "base"
         },
         {
-            "name": "flash"
-        },
-        {
             "name": "high_velocity"
         },
         {
@@ -21,6 +18,9 @@
         },
         {
             "name": "red"
+        },
+        {
+            "name": "red-icon"
         },
         {
             "name": "rubber"
